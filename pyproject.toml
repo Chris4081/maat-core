@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling>=1.21.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "maat-core"
+version = "0.1.0"
+description = "MAAT-Core: a small optimization-oriented core library inspired by MAAT field principles (H, B, S, V, R)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Christof Krieg" }]
+keywords = ["optimization", "dsl", "maat", "ethics", "fields"]
+dependencies = [
+  "numpy>=1.23",
+  "scipy>=1.10",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.0",
+  "ruff>=0.5.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/maat_core"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

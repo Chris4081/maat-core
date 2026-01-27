@@ -1,0 +1,8 @@
+cff-version: 1.2.0
+title: "MAAT-Core: Respect as a Hard Constraint in Optimization"
+authors:
+  - family-names: Krieg
+    given-names: Christof
+version: 0.1.0
+date-released: 2026-01-27
+url: https://github.com/Chris4081/maat-core
