@@ -200,5 +200,22 @@ cannot be optimal.
 This makes MAAT-Core suitable for:
 - AI safety experiments
 - autonomous systems
+
+## License
+
+MIT License
+
+Copyright (c) 2026 Christof Krieg
+
+
+## Citation
+
+If you use MAAT-Core in academic work, research, or publications,  
+please consider citing:
+
+Christof Krieg, *MAAT-Core: Safety-First Optimization Framework*, 2026.  
+https://github.com/Chris4081/maat-core
+
+
 - decision support systems
 - ethical optimization research
