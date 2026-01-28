@@ -1,4 +1,8 @@
 # MAAT-Core (Python)
+> **TL;DR**  
+> MAAT-Core is a minimal Python framework for experimenting with  
+> **optimization under explicit ethical and safety constraints.**  
+> It combines classical numerical optimization with formal value fields.
 
 A small, practical foundation for experimenting with a MAAT-style
 computation layer:
