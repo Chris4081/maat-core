@@ -24,6 +24,9 @@ It’s not a black-box AI – it’s a thinking engine for exploring decisions, 
 - 🔁 Reproducibility: [REPRODUCIBILITY.md](REPRODUCIBILITY.md)  
 - 🧠 Applications: [APPLICATIONS.md](APPLICATIONS.md)
 
+For visual exploration see:
+examples/reflection_demo.ipynb
+
 ## Typical use cases
 
 ## 1. Ethical AI experiments
@@ -72,6 +75,21 @@ Safety and values are part of the math itself
 
 If a solution violates Respect, it is not optimal by definition.
 
+## FAQ
+
+**Is this a machine learning library?**  
+No. MAAT-Core is a deterministic optimization framework, not a statistical model.
+
+**How is this different from CVXPY or classical optimizers?**  
+MAAT-Core makes ethical and safety constraints *first-class mathematical objects*,  
+not post-hoc filters.
+
+**Can this scale to neural models?**  
+Yes in principle. Fields can wrap neural networks, but MAAT-Core itself stays minimal.
+
+
+- decision support systems
+- ethical optimization research
 
 # Installation Guide — MAAT-Core
 
@@ -227,6 +245,3 @@ please consider citing:
 Christof Krieg, *MAAT-Core: Safety-First Optimization Framework*, 2026.  
 https://github.com/Chris4081/maat-core
 
-
-- decision support systems
-- ethical optimization research
