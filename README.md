@@ -13,6 +13,13 @@ computation layer:
 MAAT-Core is a small experimental toolbox for ethical and constrained optimization.
 It’s not a black-box AI – it’s a thinking engine for exploring decisions, trade-offs and safety.
 
+## Learn more
+
+- 📘 **Full Documentation:** [DOCUMENTATION.md](DOCUMENTATION.md)  
+- 🧪 Examples: `examples/`  
+- 🔁 Reproducibility: [REPRODUCIBILITY.md](REPRODUCIBILITY.md)  
+- 🧠 Applications: [APPLICATIONS.md](APPLICATIONS.md)
+
 ## Typical use cases
 
 ## 1. Ethical AI experiments
