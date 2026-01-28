@@ -217,8 +217,15 @@ Used for:
 ---
 
 ## Example 3 – Emotional Optimization (Human-AI)
-
+> Emotion as an optimizable field:  
+> Minimize emotional disharmony (loss) in order to maximize positive resonance.
 > Optimize emotional resonance.
+
+The `EmotionalHarmony` field treats emotional state as a scalar value  
+that can be optimized like any other objective.
+
+Code: examples/emotion_demo.py
+
 
 ```python
 from emotion_demo import EmotionalHarmony
