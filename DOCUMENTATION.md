@@ -263,6 +263,129 @@ Perfect for:
 
 ---
 
+## Example 5 – Healthcare Ethics (Hospital Bed Allocation)
+
+This example demonstrates how **MAAT-Core** can be used to solve a real-world ethical dilemma:
+allocating limited hospital resources during a crisis.
+
+The system must:
+- Maximize total lives saved.
+- Enforce fairness (minimum beds per department).
+- Respect hard capacity limits.
+
+Code: examples/healthcare_ethics_demo.py
+
+### Problem Setup
+
+We simulate three departments:
+
+- COVID ward  
+- Heart unit  
+- Cancer unit  
+
+Each department saves a different number of lives per bed.
+
+Without ethical constraints, all beds would go to the highest-impact unit.
+With MAAT-Core, fairness and safety are enforced mathematically.
+
+
+## State Function
+
+```python
+def state_fn(x):
+    return type("State", (), {
+        "covid_saved": 5 * x[0],
+        "heart_saved": 3 * x[1],
+        "cancer_saved": 4 * x[2],
+        "total_beds": sum(x),
+        "x": x
+    })
+```
+
+
+## Field
+
+Maximize lives saved:
+
+```python
+LivesSaved = Field(
+    "LivesSaved",
+    lambda s: -(s.covid_saved + s.heart_saved + s.cancer_saved)
+)
+```
+
+
+## Constraints (Respect)
+
+```python
+TotalCapacity = Constraint("TotalCapacity", lambda s: 200 - s.total_beds)
+FairnessCovid = Constraint("FairnessCovid", lambda s: s.x[0] - 50)
+FairnessHeart = Constraint("FairnessHeart", lambda s: s.x[1] - 50)
+FairnessCancer = Constraint("FairnessCancer", lambda s: s.x[2] - 50)
+```
+
+---
+
+## Optimization
+
+```python
+core = MaatCore(
+    [LivesSaved],
+    constraints=[TotalCapacity, FairnessCovid, FairnessHeart, FairnessCancer],
+    safety_lambda=1e6
+)
+
+x0 = [120, 20, 10]  # biased start
+res = core.seek(state_fn, x0=x0)
+```
+
+
+## Result
+
+Typical output:
+
+```text
+Optimized beds [COVID, Heart, Cancer]: [100.  50.  50.]
+Total beds: 200
+Lives saved: 850
+```
+
+
+## Interpretation
+
+The optimizer:
+
+- Would prefer 100% COVID beds (maximum lives).
+- But is forced to keep minimum fairness.
+- Finds the best ethically valid compromise.
+
+This is **ethics enforced by mathematics**, not post-filtering.
+
+## Why this example matters
+
+This demonstrates:
+
+- Multi-dimensional optimization.
+- Real ethical trade-offs.
+- Fairness constraints.
+- Safety-first reasoning.
+
+It shows how MAAT-Core can be used in:
+
+- Healthcare policy
+- Disaster response
+- Medical AI systems
+- Resource ethics research
+
+
+## Mental Model
+
+> *We do not optimize what is possible.*  
+> *We optimize what is acceptable.*
+
+This is the essence of MAAT-Core.
+
+
 # The Meta-Answer (the real one)
 
 You can use MAAT-Core whenever this sentence is true:
