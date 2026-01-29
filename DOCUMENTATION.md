@@ -407,7 +407,7 @@ That includes:
 
 ---
 
-# In one line (perfect closing)
+# In one line
 
 > MAAT-Core is not a model of intelligence.  
 > It is a model of **responsible decision making**.
