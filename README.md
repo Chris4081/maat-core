@@ -1,4 +1,15 @@
-# MAAT-Core (Python)
+<p align="left">
+  <img src="logo.png" width="280"/>
+</p>
+
+<h1 align="left">MAAT-Core (Python)</h1>
+
+<p align="left">
+A Safety-First Optimization Core for Ethical Decision-Making
+</p>
+
+---
+
 > **TL;DR**  
 > MAAT-Core is a minimal Python framework for experimenting with  
 > **optimization under explicit ethical and safety constraints.**  
@@ -9,13 +20,15 @@ computation layer:
 
 - **Fields** are weighted scalar functions over a state.
 - **Integrate** produces one objective value (weighted field tension + optional regularizers).
-- **Seek** finds a low-tension state using local optimization (L-BFGS-B) or global annealing (dual_annealing).
+- **Seek** finds a low-tension state using local optimization (L-BFGS-B) or global annealing (`dual_annealing`).
 - **S (Creativity)** is modeled as **exploration strength** (temperature), not as a "free lunch" in the objective.
 
-# What can you do with MAAT-Core?
+---
 
-MAAT-Core is a small experimental toolbox for ethical and constrained optimization.
-It’s not a black-box AI – it’s a thinking engine for exploring decisions, trade-offs and safety.
+## What can you do with MAAT-Core?
+
+MAAT-Core is a small experimental toolbox for ethical and constrained optimization.  
+It’s not a black-box AI – it’s a **thinking engine** for exploring decisions, trade-offs and safety.
 
 ## Learn more
 
