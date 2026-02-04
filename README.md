@@ -94,15 +94,34 @@ If a solution violates Respect, it is not optimal by definition.
 No. MAAT-Core is a deterministic optimization framework, not a statistical model.
 
 **How is this different from CVXPY or classical optimizers?**  
-MAAT-Core makes ethical and safety constraints *first-class mathematical objects*,  
-not post-hoc filters.
+MAAT-Core makes ethical and safety constraints *first-class mathematical objects* (margins + diagnostics), not post-hoc filters.
+
+**What does “Respect as a hard constraint” mean here?**  
+Constraints are written as margins `g(state) >= 0`. If violated, MAAT-Core applies a strong penalty so unsafe solutions become mathematically dominated.
+
+**What is a “constraint margin”?**  
+A signed distance-to-safety value: positive = safe, zero = boundary, negative = violation magnitude. Margins make constraint satisfaction interpretable and auditable.
+
+**What happens if constraints are impossible to satisfy?**  
+MAAT-Core reports persistent negative margins and flags **structural infeasibility** instead of returning a “fake ethical” solution.
+
+**How do you handle lower/upper bounds?**  
+Two options: (1) optimizer-level box bounds via `bounds`, and/or (2) explicit ethical constraints like `upper - x` and `x - lower` to get margin diagnostics.
+
+**Can bounds be dynamic (data-dependent)?**  
+Yes. You can define constraints that depend on context (e.g., waitlist size). Just ensure each constraint returns a numeric margin (not a boolean).
+
+**Why L-BFGS-B and dual annealing?**  
+L-BFGS-B is a strong baseline for box-constrained local search; dual annealing provides global exploration. MAAT-Core is optimizer-agnostic—swap engines if needed.
 
 **Can this scale to neural models?**  
-Yes in principle. Fields can wrap neural networks, but MAAT-Core itself stays minimal.
+Yes in principle. Fields can wrap neural nets (or any black-box function), while MAAT-Core stays minimal and focuses on constraint-first optimization + diagnostics.
 
+**Is this a fairness toolkit?**  
+Not specifically. Fairness is one use case. MAAT-Core generalizes to *any* ethical/safety/legal constraint expressible as a margin.
 
-- decision support systems
-- ethical optimization research
+**What is MAAT-Core for?**  
+Decision support prototypes, safety/ethics research, constraint diagnostics, and transparent trade-off exploration.
 
 # Installation Guide — MAAT-Core
 
