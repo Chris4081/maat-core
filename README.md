@@ -271,9 +271,9 @@ Copyright (c) 2026 Christof Krieg
 
 ## Citation
 
-If you use MAAT-Core in academic work, research, or publications,  
-please consider citing:
+If you use MAAT-Core in your research, please cite:
 
-Christof Krieg, *MAAT-Core: Safety-First Optimization Framework*, 2026.  
-https://github.com/Chris4081/maat-core
+Christof Krieg (2026).  
+**MAAT-Core: Respect as a Hard Constraint in Ethical Decision-Making.**  
+DOI: https://doi.org/10.5281/zenodo.18489336
 
