@@ -1,8 +1,24 @@
 cff-version: 1.2.0
-title: "MAAT-Core: Respect as a Hard Constraint in Optimization"
+message: "If you use MAAT-Core in your research, please cite this work."
+title: "MAAT-Core: Respect as a Hard Constraint in Ethical Decision-Making"
+version: "1.0.0"
+doi: "10.5281/zenodo.18489336"
+date-released: 2026-02-04
+
 authors:
   - family-names: Krieg
     given-names: Christof
-version: 0.1.0
-date-released: 2026-01-27
-url: https://github.com/Chris4081/maat-core
+    affiliation: "Independent Researcher, MAAT Project"
+
+repository-code: "https://github.com/Chris4081/maat-core"
+url: "https://maat-research.com"
+
+license: "CC-BY-4.0"
+
+keywords:
+  - ethical AI
+  - constrained optimization
+  - safety-first
+  - fairness
+  - AI governance
+  - decision support
