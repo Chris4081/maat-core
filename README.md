@@ -5,7 +5,7 @@
 <h1 align="left">MAAT-Core (Python)</h1>
 
 <p align="left">
-A Safety-First Optimization Core for Ethical Decision-Making
+A Safety-First Optimization Core for Ethical Decision-Making.
 </p>
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18489336.svg)](https://doi.org/10.5281/zenodo.18489336)
@@ -21,6 +21,8 @@ A Safety-First Optimization Core for Ethical Decision-Making
 > MAAT-Core is a minimal Python framework for experimenting with  
 > **optimization under explicit ethical and safety constraints.**  
 > It combines classical numerical optimization with formal value fields.
+> MAAT-Core is an experimental research tool intended for exploration,
+teaching, and prototyping — not production systems.
 
 A small, practical foundation for experimenting with a MAAT-style
 computation layer:
