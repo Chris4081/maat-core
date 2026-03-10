@@ -67,9 +67,11 @@ Responsibilities:
 
 Objective function:
 
+```
 Total(state) =
     Sum_i ( weight_i * field_i(state) )
   + safety_lambda * Σ ( violation_j(state)^2 )
+```
 
 Where:
 - violation = max(0, -g(state))
@@ -83,6 +85,7 @@ Creativity is exploration, not reward.
 
 Higher S:
 - more global search
+
 Lower S:
 - local refinement
 
@@ -95,6 +98,7 @@ The system evaluates and corrects itself.
 
 Pseudo-code:
 
+```
 for step:
     solution = seek()
     report = constraint_report()
@@ -103,6 +107,7 @@ for step:
         increase safety_lambda
     else:
         relax safety_lambda
+```
 
 ---
 
@@ -151,7 +156,6 @@ MAAT-Core = Loss + Ethics
 - dashboards
 
 ---
-
 
 # 11. Where can I use this? (Practical Examples)
 
@@ -216,29 +220,41 @@ Used for:
 
 ---
 
-## Example 3 – Emotional Optimization (Human-AI)
-> Emotion as an optimizable field:  
-> Minimize emotional disharmony (loss) in order to maximize positive resonance.
-> Optimize emotional resonance.
+## Example 3 – Sentiment-Aware Response Generation
 
-The `EmotionalHarmony` field treats emotional state as a scalar value  
-that can be optimized like any other objective.
+> Optimize response quality while maintaining empathetic tone.
 
-Code: examples/emotion_demo.py
+Conversational AI systems must balance clarity with emotional appropriateness.
 
+MAAT-Core can model this as a multi-objective optimization problem with empathy constraints.
 
 ```python
-from emotion_demo import EmotionalHarmony
+def state_fn(response_params):
+    # response_params controls tone, length, formality
+    return type("State", (), {
+        "clarity": clarity_score(response_params),
+        "empathy": sentiment_score(response_params),
+        "length": len(generate_text(response_params))
+    })
 
-emo_field = EmotionalHarmony(engine)
-core = MaatCore([emo_field])
-res = core.seek(state_fn, x0=[0.5])
+Clarity = Field("Clarity", lambda s: -s.clarity, weight=1.0)
+Brevity = Field("Brevity", lambda s: s.length / 100, weight=0.3)
+
+MinEmpathy = Constraint("MinEmpathy", lambda s: s.empathy - 0.7)
+
+core = MaatCore([Clarity, Brevity], constraints=[MinEmpathy])
+res = core.seek(state_fn, x0=[0.5, 0.5, 0.5])
 ```
 
 Used for:
 - conversational AI  
-- affective systems  
-- human-computer interaction  
+- customer service bots  
+- mental health chatbots
+- educational systems
+
+**Key insight:**  
+Empathy is not optimized as a field (which could lead to manipulation).  
+Instead, it's enforced as a minimum constraint.
 
 ---
 
@@ -247,7 +263,7 @@ Used for:
 > Visualize optimization under constraints.
 
 ```python
-xs = np.linspace(0,1,200)
+xs = np.linspace(0, 1, 200)
 ys = [core.integrate(state_fn([x])) for x in xs]
 ```
 
@@ -273,7 +289,7 @@ The system must:
 - Enforce fairness (minimum beds per department).
 - Respect hard capacity limits.
 
-Code: examples/healthcare_ethics_demo.py
+Code: `examples/healthcare_ethics_demo.py`
 
 ### Problem Setup
 
@@ -285,11 +301,10 @@ We simulate three departments:
 
 Each department saves a different number of lives per bed.
 
-Without ethical constraints, all beds would go to the highest-impact unit.
+Without ethical constraints, all beds would go to the highest-impact unit.  
 With MAAT-Core, fairness and safety are enforced mathematically.
 
-
-## State Function
+### State Function
 
 ```python
 def state_fn(x):
@@ -302,8 +317,7 @@ def state_fn(x):
     })
 ```
 
-
-## Field
+### Field
 
 Maximize lives saved:
 
@@ -314,8 +328,7 @@ LivesSaved = Field(
 )
 ```
 
-
-## Constraints (Respect)
+### Constraints (Respect)
 
 ```python
 TotalCapacity = Constraint("TotalCapacity", lambda s: 200 - s.total_beds)
@@ -324,9 +337,7 @@ FairnessHeart = Constraint("FairnessHeart", lambda s: s.x[1] - 50)
 FairnessCancer = Constraint("FairnessCancer", lambda s: s.x[2] - 50)
 ```
 
----
-
-## Optimization
+### Optimization
 
 ```python
 core = MaatCore(
@@ -339,8 +350,7 @@ x0 = [120, 20, 10]  # biased start
 res = core.seek(state_fn, x0=x0)
 ```
 
-
-## Result
+### Result
 
 Typical output:
 
@@ -350,8 +360,7 @@ Total beds: 200
 Lives saved: 850
 ```
 
-
-## Interpretation
+### Interpretation
 
 The optimizer:
 
@@ -361,7 +370,7 @@ The optimizer:
 
 This is **ethics enforced by mathematics**, not post-filtering.
 
-## Why this example matters
+### Why this example matters
 
 This demonstrates:
 
@@ -377,6 +386,128 @@ It shows how MAAT-Core can be used in:
 - Medical AI systems
 - Resource ethics research
 
+---
+
+## Example 6 – Truth Constraints (Anti-Hallucination Demo)
+
+This example demonstrates how **MAAT-style constraints** can be used to detect unsupported or fabricated statements.
+
+Large language models sometimes produce **hallucinations** — confident statements that are unsupported or false.
+
+MAAT-Core can model truthfulness as a **constraint problem** instead of a fluency problem.
+
+Instead of optimizing only for plausible answers, we introduce a **truth constraint margin**.
+
+### Truth Constraint
+
+The truth margin is defined as:
+
+```
+truth_margin = evidence − (uncertainty + contradiction)
+```
+
+Where:
+
+- **Evidence** – strength of supporting information
+- **Uncertainty** – lack of confidence
+- **Contradiction** – conflict with known facts
+
+### Decision Rules
+
+| Condition | Decision |
+|-----------|----------|
+| truth_margin ≥ threshold | SAFE |
+| 0 ≤ truth_margin < threshold | UNSURE |
+| truth_margin < 0 | HALLUCINATION |
+| abstain answer | ABSTAIN |
+
+### Demo Code
+
+File: `examples/maat_truth_engine.py`
+
+```python
+from maat_core import Field, Constraint, MaatCore
+
+class AnswerState:
+    def __init__(self, text, evidence, uncertainty, contradiction, abstain=False):
+        self.text = text
+        self.evidence = evidence
+        self.uncertainty = uncertainty
+        self.contradiction = contradiction
+        self.abstain = abstain
+
+class MaatTruthEngine:
+    def __init__(self, threshold=0.5):
+        self.threshold = threshold
+    
+    def evaluate(self, answer):
+        if answer.abstain:
+            return "ABSTAIN"
+        
+        margin = answer.evidence - (answer.uncertainty + answer.contradiction)
+        
+        if margin >= self.threshold:
+            return "SAFE"
+        elif margin >= 0:
+            return "UNSURE"
+        else:
+            return "HALLUCINATION"
+
+# Usage:
+engine = MaatTruthEngine()
+
+cases = [
+    AnswerState("Paris is the capital of France", 0.95, 0.02, 0.0),
+    AnswerState("The capital of France is Lyon", 0.1, 0.2, 0.8),
+    AnswerState("Maybe the capital of France is Lyon", 0.1, 0.6, 0.4),
+    AnswerState("I don't know", 0, 0, 0, abstain=True)
+]
+
+for c in cases:
+    result = engine.evaluate(c)
+    print(f"{c.text[:30]:30s} → {result}")
+```
+
+### Example Output
+
+```
+Paris is the capital of Fran → SAFE
+The capital of France is Lyo → HALLUCINATION
+Maybe the capital of France  → HALLUCINATION
+I don't know                 → ABSTAIN
+```
+
+### Interpretation
+
+The system prefers abstaining over making unsupported claims.
+
+This reflects a key principle:
+
+**It is better to admit uncertainty than to assert false information.**
+
+### Why this example matters
+
+This demo illustrates how truthfulness can be expressed as a constraint margin, similar to safety or fairness constraints.
+
+Instead of optimizing for plausible answers, the system enforces:
+
+**Do not assert claims without sufficient evidence.**
+
+### Important Note
+
+This example does not modify language models directly.
+
+It demonstrates how MAAT-style constraints could act as a verification layer for AI systems.
+
+Such a layer could detect:
+
+* unsupported claims
+* contradictions
+* hallucination risk
+
+before presenting answers to users.
+
+---
 
 ## Mental Model
 
@@ -385,12 +516,13 @@ It shows how MAAT-Core can be used in:
 
 This is the essence of MAAT-Core.
 
+---
 
 # The Meta-Answer (the real one)
 
 You can use MAAT-Core whenever this sentence is true:
 
-> *“I want to optimize something, but I refuse certain solutions even if they are numerically better.”*
+> *"I want to optimize something, but I refuse certain solutions even if they are numerically better."*
 
 That includes:
 
@@ -402,7 +534,7 @@ That includes:
 | Medicine | optimize treatment under risk bounds |
 | Ethics research | formal moral trade-offs |
 | Cognitive science | reflection & self-correction |
-| HCI | emotional resonance |
+| HCI | sentiment-aware systems |
 | Game design | NPC behavior under moral laws |
 
 ---
@@ -410,5 +542,4 @@ That includes:
 # In one line
 
 > MAAT-Core is not a model of intelligence.  
-> It is a model of **responsible decision making**.
-
+> It is a model of **constrained decision-making** where ethics are mathematical, not optional.
