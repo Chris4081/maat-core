@@ -74,7 +74,7 @@ Code contributions via pull requests are welcome!
 
 ```bash
 # Fork on GitHub, then:
-git clone https://github.com/YOUR_USERNAME/maat-core.git
+git clone https://github.com/chris4081/maat-core.git
 cd maat-core
 ```
 
