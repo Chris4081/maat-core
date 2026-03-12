@@ -21,8 +21,6 @@ Outputs:
 - console summary
 - CSV file with benchmark results
 
-Usage:
-    python examples/benchmark_healthcare_vs_scipy.py
 """
 
 from __future__ import annotations
