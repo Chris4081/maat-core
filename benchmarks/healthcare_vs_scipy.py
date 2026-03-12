@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-benchmark_healthcare_vs_scipy.py
+benchmark healthcare_vs_scipy.py
 --------------------------------
 Compare MAAT-Core against native SciPy constrained optimizers
 on a simple healthcare bed-allocation problem.
