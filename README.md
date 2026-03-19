@@ -51,9 +51,6 @@ in constrained optimization.
 - `examples/plot_cci_transition.py` — figure generation
 - `examples/cci_transition_plot.png` — generated figure
 
-**Paper / write-up:**
-- `papers/cci_constraint_transition_2026.tex`
-
 **Run the demo:**
 ```bash
 python examples/cci_critical_transition_demo.py
