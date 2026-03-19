@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Iterable, List, Sequence, Any, Optional
+from typing import Callable, Any
 import numpy as np
 from scipy.optimize import minimize, dual_annealing
 
 
 StateFn = Callable[[float], Any]
 FieldFn = Callable[[Any], float]
-
 ConstraintFn = Callable[[Any], float]
 
 
@@ -19,7 +18,6 @@ class Constraint:
     The function must return a value >= 0 when the constraint is satisfied.
     If it is negative, the constraint is violated by -value.
     """
-
     name: str
     func: ConstraintFn
     weight: float = 1.0
@@ -75,6 +73,66 @@ class MaatCore:
             })
         return report
 
+    def compute_cci(
+        self,
+        state,
+        *,
+        instability: float = 1.0,
+        production: float = 1.0,
+        coherence: float = 1.0,
+        constraints: float = 1.0,
+        correction: float = 1.0,
+        interaction: float = 1.0,
+        kappa: float = 0.1,
+        U_struct: float = 0.0,
+        eps: float = 1e-8,
+    ):
+        """
+        Critical Coherence Index (CCI)
+
+        Backward-compatible:
+        - uses constraint margins if available
+        - does NOT affect optimization
+        - purely diagnostic for now
+        """
+        margins = []
+        for c in self.constraints:
+            try:
+                m = float(c.func(state))
+                if not np.isnan(m):
+                    margins.append(m)
+            except Exception:
+                continue
+
+        if len(margins) == 0:
+            mean_margin = 0.0
+        else:
+            mean_margin = float(np.mean(margins))
+
+        numerator = instability * production * (1.0 + kappa * U_struct)
+        denominator = coherence + constraints + correction + interaction + eps
+
+        cci = (numerator / denominator) * (1.0 + mean_margin)
+        return float(cci)
+
+    def cci_report(self, state, **kwargs):
+        """
+        Convenience wrapper around compute_cci() with a rough regime classification.
+        """
+        cci = self.compute_cci(state, **kwargs)
+
+        if cci < 1.0:
+            regime = "stable"
+        elif cci < 1.5:
+            regime = "critical"
+        else:
+            regime = "unstable"
+
+        return {
+            "cci": cci,
+            "regime": regime
+        }
+
     def seek(
         self,
         state_fn,
@@ -101,7 +159,6 @@ class MaatCore:
         """
         S = float(S)
 
-        # ---------- detect scalar vs vector ----------
         def _is_scalar_like(v) -> bool:
             if isinstance(v, (int, float, np.floating, np.integer)):
                 return True
