@@ -34,6 +34,34 @@ computation layer:
 
 ---
 
+## What's New — v0.1.1
+
+Version 0.1.1 introduces a new reproducible benchmark showing how the
+Critical Coherence Index (CCI) behaves as a structural order parameter
+in constrained optimization.
+
+**Highlights:**
+- Constraint-induced transition near the unconstrained optimum
+- Clear CCI peak at the boundary crossing
+- Publication-ready plotting pipeline
+- Fully reproducible via the `examples/` folder
+
+**Key files:**
+- `examples/cci_critical_transition_demo.py` — simulation
+- `examples/plot_cci_transition.py` — figure generation
+- `examples/cci_transition_plot.png` — generated figure
+
+**Paper / write-up:**
+- `papers/cci_constraint_transition_2026.tex`
+
+**Run the demo:**
+```bash
+python examples/cci_critical_transition_demo.py
+python examples/plot_cci_transition.py
+```
+
+---
+
 ## Quick example (Respect as Safety-First constraint)
 
 ```python
