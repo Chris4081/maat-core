@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "maat-core"
-version = "0.1.0"
+version = "0.1.1"
 description = "MAAT-Core: a small optimization-oriented core library inspired by MAAT field principles (H, B, S, V, R)."
 readme = "README.md"
 requires-python = ">=3.10"
