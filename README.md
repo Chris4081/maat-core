@@ -165,7 +165,7 @@ If a solution violates Respect, it is not optimal by definition.
 
 ## Learn more
 
-- 📘 **Full Documentation:** [DOCUMENTATION.md](docs/DOCUMENTATION.md)  
+- 📘 **Full Documentation:** [DOCUMENTATION.md](DOCUMENTATION.md)  
 - 🧪 **Examples:** See `examples/` directory
   - Healthcare allocation: `examples/healthcare_ethics_demo.py`
   - Truth constraints: `examples/truth_constraints_demo.py`
