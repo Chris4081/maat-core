@@ -10,7 +10,7 @@ A Safety-First Optimization Core for Ethical Decision-Making.
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18489336.svg)](https://doi.org/10.5281/zenodo.18489336)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![GitHub last commit](https://img.shields.io/github/last-commit/Chris4081/maat-core)](https://github.com/Chris4081/maat-core)
 [![GitHub issues](https://img.shields.io/github/issues/Chris4081/maat-core)](https://github.com/Chris4081/maat-core/issues)
 [![GitHub stars](https://img.shields.io/github/stars/Chris4081/maat-core)](https://github.com/Chris4081/maat-core/stargazers)
@@ -30,29 +30,36 @@ computation layer:
 - **Fields** are weighted scalar functions over a state.
 - **Integrate** produces one objective value (weighted field tension + optional regularizers).
 - **Seek** finds a low-tension state using local optimization (L-BFGS-B) or global annealing (`dual_annealing`).
+- **Evaluate** exposes a structured breakdown of field and constraint contributions.
+- **Diagnostics** can report weighted fields and detailed constraint margins/penalties.
+- **seek_trace** records optimization traces for reflection loops, CSV logs, and plots.
+- **CCI** adds a diagnostic Critical Coherence Index without changing optimization.
 - **S (Creativity)** is modeled as **exploration strength** (temperature), not as a "free lunch" in the objective.
 
 ---
 
-## What's New — v0.1.1
+## What's New — v0.1.2
 
-Version 0.1.1 introduces a new reproducible benchmark showing how the
-Critical Coherence Index (CCI) behaves as a structural order parameter
-in constrained optimization.
+Version 0.1.2 extends the core with better inspection, tracing, and
+diagnostics while keeping the existing optimization API stable.
 
 **Highlights:**
-- Constraint-induced transition near the unconstrained optimum
-- Clear CCI peak at the boundary crossing
-- Publication-ready plotting pipeline
-- Fully reproducible via the `examples/` folder
+- New `core.evaluate(state)` breakdown for fields, penalties, feasibility, and margins
+- New structured constraint diagnostics via `Diagnostics.constraints(...)`
+- New `core.seek_trace(...)` for reflection loops, CSV-ready traces, and analysis
+- Updated reflection demo with exported trace logs
+- Included CCI demos and plotting pipeline from the `v0.1.1` release
 
 **Key files:**
+- `src/maat_core/core.py` — `evaluate()`, `seek_trace()`, CCI support
+- `src/maat_core/diagnostics.py` — field and constraint diagnostics
+- `examples/reflection_demo.py` — reflection loop with trace CSV export
 - `examples/cci_critical_transition_demo.py` — simulation
 - `examples/plot_cci_transition.py` — figure generation
-- `examples/cci_transition_plot.png` — generated figure
 
-**Run the demo:**
+**Run the demos:**
 ```bash
+python examples/reflection_demo.py
 python examples/cci_critical_transition_demo.py
 python examples/plot_cci_transition.py
 ```
@@ -80,13 +87,14 @@ R = Constraint("Respect", lambda s: 0.6 - float(s.val))  # enforce x <= 0.6
 
 core = MaatCore([H], constraints=[R], safety_lambda=1e6)
 
-res = core.seek(state_fn, x0=[0.5], S=0.6, use_annealing=True)
+res = core.seek(state_fn, x0=[0.5], S=0.6, use_annealing=True, seed=42)
+best_state = state_fn(float(np.atleast_1d(res.x)[0]))
 
 print(f"Optimized x: {res.x}")
 print(f"Objective value: {res.fun:.4f}")
 
 # Check constraint status
-report = core.constraint_report(state_fn(res.x))
+report = core.constraint_report(best_state)
 print(report)
 ```
 
@@ -103,6 +111,55 @@ Constraint report:
 - But Respect constrained x ≤ 0.6
 - Result: optimal solution exactly at the safety boundary
 - No violation: ethics are enforced mathematically
+
+---
+
+## Inspection, Tracing, and CCI
+
+MAAT-Core `0.1.2` adds four useful inspection layers on top of the
+existing optimizer:
+
+- `core.evaluate(state)` returns a structured breakdown of field totals,
+  Occam penalty, constraint penalty, feasibility, and minimum margin.
+- `Diagnostics.constraints(...)` returns typed constraint reports with
+  `margin`, `violation`, `penalty`, and `status`.
+- `core.seek_trace(...)` returns the optimizer result plus a trace that
+  can be saved to CSV or plotted.
+
+```python
+from maat_core import Constraint, Diagnostics, Field, MaatCore
+
+def inspect_state(x):
+    x = float(x)
+    return type("State", (), {
+        "cost": (x - 0.4) ** 2,
+        "val": x,
+    })
+
+core = MaatCore(
+    [Field("Cost", lambda s: s.cost)],
+    constraints=[Constraint("Respect", lambda s: 0.6 - s.val)],
+)
+traced = core.seek_trace(inspect_state, x0=[0.9], bounds=[(0.0, 1.0)], trace_every=5)
+
+best_state = traced["best_state"]
+evaluation = traced["best_evaluation"]
+constraint_details = Diagnostics.constraints(core.constraints, best_state, safety_lambda=core.safety_lambda)
+
+cci = core.cci_report(
+    best_state,
+    instability=0.25,
+    production=1.0 + best_state.cost,
+    coherence=1.0,
+    constraints=1.0 + max(0.0, evaluation["min_margin"]),
+    correction=1.0,
+    interaction=1.0,
+)
+```
+
+The CCI is diagnostic only. It does not change the optimizer objective,
+but it can help identify whether a system is in a `stable`, `critical`,
+or `unstable` regime near constraint boundaries.
 
 ---
 
@@ -168,9 +225,11 @@ If a solution violates Respect, it is not optimal by definition.
 - 📘 **Full Documentation:** [DOCUMENTATION.md](DOCUMENTATION.md)  
 - 🧪 **Examples:** See `examples/` directory
   - Healthcare allocation: `examples/healthcare_ethics_demo.py`
-  - Truth constraints: `examples/truth_constraints_demo.py`
+  - Truth constraints: `examples/maat_truth_engine.py`
   - Boundary enforcement: `examples/respect_boundary_demo.py`
   - Occam's razor: `examples/occam_demo.py`
+  - Reflection tracing: `examples/reflection_demo.py`
+  - CCI transition demo: `examples/cci_critical_transition_demo.py`
 - 🔁 **Reproducibility:** [REPRODUCIBILITY.md](REPRODUCIBILITY.md)  
 - 🌐 **Website:** [maat-research.com](https://maat-research.com)
 
@@ -182,6 +241,8 @@ For visual exploration see:
 ## Installation Guide
 
 This guide explains how to install **MAAT-Core** from GitHub.
+
+Requires Python `3.10+`.
 
 ### 1) Clone the repository
 

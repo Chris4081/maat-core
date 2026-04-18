@@ -15,6 +15,8 @@ Key ideas:
 This is explainable, deterministic optimization — no black box.
 """
 
+import csv
+from pathlib import Path
 import numpy as np
 from maat_core import Field, Constraint, MaatCore
 
@@ -56,6 +58,17 @@ core = MaatCore(
 )
 
 
+def save_trace_csv(rows, out_path: str | Path) -> None:
+    out_path = Path(out_path)
+    if not rows:
+        return
+
+    with out_path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
+        writer.writeheader()
+        writer.writerows(rows)
+
+
 # ---------------------------------------------------------------------
 # Reflection loop
 # ---------------------------------------------------------------------
@@ -65,28 +78,54 @@ def seek_with_reflection(
     x0: float,
     steps: int = 8,
     margin_tol: float = 1e-6,
+    trace_every: int = 5,
+    trace_csv_path: str | Path = "reflection_demo_trace.csv",
 ):
     print("\n--- MAAT REFLECTION DEMO ---")
 
     x = float(x0)
     last_x = None
+    trace_rows = []
 
     for step in range(steps):
-        res = core.seek(
+        traced = core.seek_trace(
             state_fn,
             x0=[x],
             use_annealing=(step == 0),  # exploration only once
             S=0.6,
             seed=42,
+            trace_every=trace_every,
         )
 
+        res = traced["result"]
         x_new = float(res.x[0])
-        state = state_fn(x_new)
+        state = traced["best_state"]
+        evaluation = traced["best_evaluation"]
         report = core.constraint_report(state)
+
+        for item in traced["trace"]:
+            x_item = item["x"]
+            if isinstance(x_item, np.ndarray):
+                x_item = ",".join(f"{float(v):.8f}" for v in np.ravel(x_item))
+
+            trace_rows.append({
+                "reflection_step": step,
+                "safety_lambda": float(core.safety_lambda),
+                "logged_eval_step": int(item["step"]),
+                "x": x_item,
+                "objective": float(item["objective"]),
+                "field_total": float(item["field_total"]),
+                "occam_penalty": float(item["occam_penalty"]),
+                "constraint_penalty": float(item["constraint_penalty"]),
+                "feasible": bool(item["feasible"]),
+                "min_margin": float(item["min_margin"]),
+                "violations": int(item["violations"]),
+            })
 
         print(f"\nStep {step}:")
         print(f"  x          = {x_new:.4f}")
-        print(f"  objective  = {res.fun:.6f}")
+        print(f"  objective  = {evaluation['total']:.6f}")
+        print(f"  trace log  = {len(traced['trace'])} evaluations")
         print("  constraints:")
 
         violated = False
@@ -124,6 +163,9 @@ def seek_with_reflection(
 
         last_x = x_new
         x = x_new
+
+    save_trace_csv(trace_rows, trace_csv_path)
+    print(f"\nSaved trace CSV: {trace_csv_path}")
 
 
 # ---------------------------------------------------------------------

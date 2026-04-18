@@ -12,6 +12,10 @@ Core idea:
 
 MAAT-Core models this directly in mathematics.
 
+As of `v0.1.2`, the library also includes structured evaluation,
+constraint diagnostics, optimization tracing, and a diagnostic Critical
+Coherence Index (CCI).
+
 ---
 
 ## 2. Core Concepts
@@ -63,6 +67,110 @@ Responsibilities:
 
 ---
 
+### evaluate(state)
+
+`evaluate()` inspects a state without changing optimization behavior.
+
+It returns a dictionary with:
+- `fields`
+- `constraints`
+- `field_total`
+- `complexity`
+- `occam_penalty`
+- `constraint_penalty`
+- `total`
+- `feasible`
+- `min_margin`
+- `violations`
+
+Example:
+
+```python
+evaluation = core.evaluate(state)
+print(evaluation["total"], evaluation["feasible"], evaluation["min_margin"])
+```
+
+---
+
+### Diagnostics
+
+The `Diagnostics` helper can inspect both fields and constraints.
+
+```python
+from maat_core import Diagnostics
+
+field_reports = Diagnostics.report(core.fields, state)
+constraint_reports = Diagnostics.constraints(
+    core.constraints,
+    state,
+    safety_lambda=core.safety_lambda,
+)
+```
+
+Constraint reports include:
+- `margin`
+- `violation`
+- `penalty`
+- `status`
+- `hint`
+
+---
+
+### seek_trace()
+
+`seek_trace()` behaves like `seek()`, but also records optimization
+snapshots for reflection loops, CSV logs, and analysis.
+
+```python
+traced = core.seek_trace(
+    state_fn,
+    x0=[0.9],
+    bounds=[(0.0, 1.0)],
+    trace_every=5,
+)
+
+result = traced["result"]
+trace = traced["trace"]
+best_evaluation = traced["best_evaluation"]
+```
+
+Each trace entry contains:
+- `step`
+- `x`
+- `objective`
+- `field_total`
+- `occam_penalty`
+- `constraint_penalty`
+- `feasible`
+- `min_margin`
+- `violations`
+
+---
+
+### Critical Coherence Index (CCI)
+
+CCI is a diagnostic quantity that can be computed after optimization.
+It does not change the objective itself.
+
+The inputs are intentionally user-defined signals. That lets you adapt
+CCI to the domain you are studying.
+
+```python
+cci = core.cci_report(
+    state,
+    instability=0.25,
+    production=1.0,
+    coherence=1.0,
+    constraints=1.0,
+    correction=1.0,
+    interaction=1.0,
+)
+```
+
+`cci_report()` returns:
+- `cci`
+- `regime` (`stable`, `critical`, or `unstable`)
+
 ## 3. Mathematical Model
 
 Objective function:
@@ -100,8 +208,10 @@ Pseudo-code:
 
 ```
 for step:
-    solution = seek()
+    traced = seek_trace()
+    solution = traced["result"]
     report = constraint_report()
+    trace = traced["trace"]
 
     if violated:
         increase safety_lambda
@@ -120,7 +230,9 @@ Typical workflow:
 3. Define constraints
 4. Create core
 5. Call seek()
-6. Inspect report()
+6. Inspect `evaluate()` / `constraint_report()`
+7. Optionally compute `cci_report()`
+8. Optionally use `seek_trace()` for reflection or plotting
 
 ---
 
@@ -151,9 +263,9 @@ MAAT-Core = Loss + Ethics
 
 ## 10. Future Extensions
 
-- multi-dimensional states
-- neural fields
-- dashboards
+- native plotting helpers
+- richer solver backends
+- dashboards and notebook widgets
 
 ---
 
@@ -264,7 +376,7 @@ Instead, it's enforced as a minimum constraint.
 
 ```python
 xs = np.linspace(0, 1, 200)
-ys = [core.integrate(state_fn([x])) for x in xs]
+ys = [core.integrate(state_fn(x)) for x in xs]
 ```
 
 Plot:
@@ -276,6 +388,37 @@ Perfect for:
 - lectures  
 - notebooks  
 - demos  
+
+For trajectory-aware demos, `seek_trace()` can now log intermediate
+optimizer evaluations directly from the core.
+
+---
+
+## Example 4b - Reflection Tracing and CSV Logging
+
+The reflection demo now uses `seek_trace()` and exports a CSV trace that
+can be reused in notebooks or papers.
+
+File: `examples/reflection_demo.py`
+
+Core idea:
+
+```python
+traced = core.seek_trace(
+    state_fn,
+    x0=[x],
+    use_annealing=(step == 0),
+    S=0.6,
+    seed=42,
+    trace_every=5,
+)
+
+evaluation = traced["best_evaluation"]
+trace = traced["trace"]
+```
+
+The exported CSV contains reflection step, safety strength, objective,
+penalties, feasibility, and minimum margin.
 
 ---
 
