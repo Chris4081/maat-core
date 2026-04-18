@@ -24,5 +24,9 @@ dist/
 # Logs
 *.log
 
+# Demo / research outputs
+*.csv
+*.png
+
 # Optional: local lock files
 requirements-lock.txt
